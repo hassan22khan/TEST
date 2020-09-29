@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Students Table</title>
+    <link rel="stylesheet" href="./content/stylesheet.css" />
+    <script
+      src="https://code.jquery.com/jquery-1.12.4.min.js"
+      integrity="sha256-ZosEbRLbNQzLpnKIkEdrPv7lOy9C27hHQ+Xp8a4MxAQ="
+      crossorigin="anonymous"
+    ></script>
+  </head>
+  <body>
+    <button id="add-new-student" onclick="renderFormInTable()">
+      Add New Student
+    </button>
+    <table>
+      <thead>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Contact Number</th>
+        <th>Date of Birth</th>
+        <th>Password</th>
+        <th>Confirm Password</th>
+        <th colspan="2">Actions</th>
+      </thead>
+      <tbody id="student-records"></tbody>
+    </table>
+    <script src="./scripts/validation.js"></script>
+    <script src="./scripts/studentManager.js"></script>
+  </body>
+</html>
