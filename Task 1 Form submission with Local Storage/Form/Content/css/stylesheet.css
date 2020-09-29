@@ -1,0 +1,16 @@
+.form-group {
+  padding: 15px;
+  margin: 0 auto;
+  display: block;
+}
+form {
+  margin-left: 5%;
+  margin-top: 12%;
+}
+#users-table {
+  display: inline-block;
+  position: absolute;
+  /* margin: 0 auto; */
+  right: 15%;
+  top: 28%;
+}

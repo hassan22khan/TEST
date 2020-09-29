@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Form</title>
+    <script
+      src="https://code.jquery.com/jquery-1.12.4.min.js"
+      integrity="sha256-ZosEbRLbNQzLpnKIkEdrPv7lOy9C27hHQ+Xp8a4MxAQ="
+      crossorigin="anonymous"
+    ></script>
+    <link rel="stylesheet" href="./Content/css/stylesheet.css" />
+  </head>
+  <body>
+    <section id="Login-form">
+      <form>
+        <div class="form-group">
+          <label class="username-label" for="name">Username</label>
+          <input type="text" name="name" id="username" required />
+          <label class="username-error-label"></label>
+        </div>
+        <div class="form-group">
+          <label class="email-label" for="email">Email</label>
+          <input type="email" name="email" id="email" required />
+          <label class="email-error-label"></label>
+        </div>
+        <div class="form-group">
+          <label class="phone-label" for="name">Phone Number</label>
+          <input type="text" name="phone" id="phone" required />
+          <label class="phone-error-label"></label>
+        </div>
+        <div class="form-group">
+          <label class="password-label" for="password">Password</label>
+          <input type="password" name="password" id="password" required />
+          <label class="password-error-label"></label>
+        </div>
+        <div class="form-group">
+          <label class="password-label" for="confirm-password"
+            >Confirm Password</label
+          >
+          <input
+            type="password"
+            name="confirm-password"
+            id="confirm-password"
+            required
+          />
+          <label class="confirm-password-error-label"></label>
+        </div>
+        <div class="form-group">
+          <label class="date-label" for="date"></label>
+          <input type="date" id="date" name="date" required />
+        </div>
+        <input type="number" id="id" hidden value="0" />
+        <div class="form-group">
+          <button type="submit" id="submit">
+            <a href="./StudentsList.html">Submit</a>
+          </button>
+        </div>
+      </form>
+      <button class="list-button">
+        <a href="./StudentsList.html">Students List</a>
+      </button>
+    </section>
+    <script src="./script/renderTable.js"></script>
+    <script src="./script/validation.js"></script>
+    <script src="./script/studentManager.js"></script>
+  </body>
+</html>
