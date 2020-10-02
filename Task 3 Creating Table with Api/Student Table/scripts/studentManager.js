@@ -11,38 +11,17 @@ function getStudentData() {
 }
 
 function getStudents() {
-  $.ajax({
-    url: "https://localhost:44380/api/student",
-    method: "GET",
-    success: function (dataFromApi) {
-      studentsArray = JSON.parse(JSON.stringify(dataFromApi));
-      if (studentsArray === null) studentsArray = [];
-      console.log(studentsArray);
-      arrayLength = studentsArray.length;
-      let table = studentsArray.map(
-        (element, index) => `<tr id="row-${index}">
-            <td>${element.name}</td>
-            <td>${element.email}</td>
-            <td>${element.phone}</td>
-            <td>${new Date(element.dob).toDateString()}</td>
-            <td>${element.password}</td>
-            <td>${element.confirmPassword}</td>
-            <td><button id="edit-${index}" onclick="onEdit(${index})">Edit</button></td>
-            <td><button id="delete-${index}" onclick="onDelete(${
-          element.id
-        })">Delete</button></td>
-            </tr>`
-      );
-      $("#student-records").append(table);
+  ajaxCall(
+    "",
+    null,
+    "GET",
+    (data) => {
+      renderTable(data);
     },
-  });
-}
-
-function addStudent() {
-  let studentsArray = getStudents();
-  getStudentData();
-  studentsArray.push(student);
-  localStorage.setItem("Students", JSON.stringify(studentsArray));
+    () => {
+      alert("Failed to get students");
+    }
+  );
 }
 
 function validate(student) {
@@ -64,49 +43,53 @@ function validate(student) {
 }
 
 function onSave(index) {
-  //debugger;
   getStudentData();
   if (validate(student)) {
     if (index !== studentsArray.length) {
       let studentToEdit = studentsArray[index];
-      console.log(studentToEdit);
-      $.ajax({
-        url: "https://localhost:44380/api/student",
-        method: "PUT",
-        data: {
-          Id: studentToEdit.id,
-          Name: student.name,
-          Email: student.email,
-          Phone: student.phone,
-          Dob: student.dob,
-          Password: student.password,
-          ConfirmPassword: student.confirmPassword,
+      let data = {
+        Id: studentToEdit.id,
+        Name: student.name,
+        Email: student.email,
+        Phone: student.phone,
+        Dob: student.dob,
+        Password: student.password,
+        ConfirmPassword: student.confirmPassword,
+      };
+
+      ajaxCall(
+        null,
+        data,
+        "PUT",
+        () => {
+          location.reload();
         },
-        success: function () {
-          console.log("Student edited");
-          window.location.reload();
-        },
-      }).fail(function () {
-        console.log(`failed to edit ${studentToEdit.id}`);
-      });
+        () => {
+          alert("Failed to update student");
+        }
+      );
     } else {
-      $.ajax({
-        url: "https://localhost:44380/api/student",
-        method: "POST",
-        data: {
-          Name: student.name,
-          Email: student.email,
-          Phone: student.phone,
-          Dob: student.dob,
-          Password: student.password,
-          ConfirmPassword: student.confirmPassword,
-        },
-        success: function () {
-          console.log("did post call");
+      let data = {
+        Name: student.name,
+        Email: student.email,
+        Phone: student.phone,
+        Dob: student.dob,
+        Password: student.password,
+        ConfirmPassword: student.confirmPassword,
+      };
+
+      ajaxCall(
+        null,
+        data,
+        "POST",
+        () => {
           $("#add-new-student").attr("disabled", false);
           window.location.reload();
         },
-      });
+        () => {
+          alert("Failed to add student");
+        }
+      );
     }
   }
 }
@@ -116,14 +99,27 @@ function onCancel() {
 }
 
 function onDelete(studentId) {
-  $.ajax({
-    url: "https://localhost:44380/api/student?Id=" + studentId,
-    method: "DELETE",
-    success: function () {
-      console.log("deleted the record");
-      window.location.reload();
+  ajaxCall(
+    `?Id=${studentId}`,
+    null,
+    "DELETE",
+    () => {
+      location.reload();
     },
-  });
+    () => {
+      alert("Failed to delete");
+    }
+  );
+
+  // $.ajax({
+  //   url: "https://localhost:44380/api/student?Id=" + studentId,
+  //   method: "DELETE",
+  //   success: function () {
+  //     window.location.reload();
+  //   },
+  // }).fail(function () {
+  //   alert("Failed to delete student");
+  // });
 }
 
 function refillForm(index) {
@@ -181,8 +177,26 @@ function renderFormInTable() {
   $("#add-new-student").attr("disabled", true);
 }
 
-function renderTable() {
-  let studentsArray = getStudents();
+function renderTable(dataFromApi) {
+  studentsArray = JSON.parse(JSON.stringify(dataFromApi));
+  if (studentsArray === null) studentsArray = [];
+  console.log(studentsArray);
+  arrayLength = studentsArray.length;
+  let table = studentsArray.map(
+    (element, index) => `<tr id="row-${index}">
+        <td>${element.name}</td>
+        <td>${element.email}</td>
+        <td>${element.phone}</td>
+        <td>${new Date(element.dob).toDateString()}</td>
+        <td>${element.password}</td>
+        <td>${element.confirmPassword}</td>
+        <td><button id="edit-${index}" onclick="onEdit(${index})">Edit</button></td>
+        <td><button id="delete-${index}" onclick="onDelete(${
+      element.id
+    })">Delete</button></td>
+        </tr>`
+  );
+  $("#student-records").append(table);
 }
 
-renderTable();
+getStudents();
