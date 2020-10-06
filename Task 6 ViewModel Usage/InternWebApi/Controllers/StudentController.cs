@@ -22,22 +22,10 @@ namespace InternWebApi.Controllers
         {
             var students = service.GetAll();
             if (students == null) return NotFound();
-            var StudentViewModels = new List<StudentViewModel>();
-            foreach(var student in students)
-            {
-                using (var context = new StudentContext())
-                {
-                    var coursesOfStudent = context.StudentCourses
-                        .Where(sc => sc.StudentId == student.Id)
-                        .Select(sc => sc.CourseId.ToString())
-                        .ToList();
 
-                    var viewModel = new StudentViewModel { Student = student, Courses = coursesOfStudent};
+            var studentViewModels = service.GetStudentCourses(students);
 
-                    StudentViewModels.Add(viewModel);
-                }
-            }
-            return Ok(StudentViewModels);
+            return Ok(studentViewModels);
         }
         
         [HttpPost]
@@ -49,17 +37,7 @@ namespace InternWebApi.Controllers
             if (viewModel.Student == null) return BadRequest();
             
             service.Post(viewModel.Student);
-            
-            using (var context = new StudentContext())
-            {
-                foreach (var course in viewModel.Courses)
-                {
-                    context.StudentCourses.Add(new StudentCourse { StudentId = viewModel.Student.Id, CourseId = int.Parse(course) });
-                    
-                }
-                context.SaveChanges();
-            }
-            
+            service.AddStudentCourses(viewModel);
             return Ok("posted student");
         }
 
@@ -67,16 +45,8 @@ namespace InternWebApi.Controllers
         public IHttpActionResult DeleteStudent(int id)
         {
             service.Delete(id);
-            using (var context = new StudentContext())
-            {
-               var studentCourses = context.StudentCourses.Where(sc => sc.StudentId == id).ToList();
-                foreach(var studentCourse in studentCourses)
-                {
-                    context.StudentCourses.Remove(studentCourse);
-                }
-                context.SaveChanges();
-            }
-                return Ok("Deleted student");
+            service.DeleteStudentCourses(id);
+            return Ok("Deleted student");
         }
 
         [HttpPut]
@@ -84,20 +54,8 @@ namespace InternWebApi.Controllers
         {
             if (viewModel.Student == null) return BadRequest();
             service.Update(viewModel.Student);
-            using (var context = new StudentContext())
-            {
-                var studentCourses = context.StudentCourses.Where(sc => sc.StudentId == viewModel.Student.Id).ToList();
-                foreach(var studentCourse in studentCourses)
-                {
-                    context.StudentCourses.Remove(studentCourse);
-                }
-                foreach(var course in viewModel.Courses)
-                {
-                    context.StudentCourses.Add(new StudentCourse { StudentId = viewModel.Student.Id, CourseId = int.Parse(course) });
-                }
-                context.SaveChanges();
-            }
-                return Ok("updated the student");
+            service.UpdatedStudentCourses(viewModel);
+            return Ok("updated the student");
         }
 
     }
