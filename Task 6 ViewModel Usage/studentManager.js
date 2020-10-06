@@ -1,6 +1,8 @@
 let student = {};
 let studentsArray;
 let arrayLength;
+let coursesFromApi;
+
 function getStudentData() {
   student.name = $("#username").val();
   student.phone = $("#phone").val();
@@ -8,11 +10,13 @@ function getStudentData() {
   student.dob = $("#dob").val();
   student.password = $("#password").val();
   student.confirmPassword = $("#confirm-password").val();
+  student.coursesList = $("#select-courses").val();
 }
 
 function getStudents() {
   ajaxCall(
-    "",
+    "student",
+    null,
     null,
     "GET",
     (data) => {
@@ -44,20 +48,26 @@ function validate(student) {
 
 function onSave(index) {
   getStudentData();
+  console.log(student);
   if (validate(student)) {
     if (index !== studentsArray.length) {
-      let studentToEdit = studentsArray[index];
+      // ajax call for update
+      let studentToEdit = studentsArray[index].student;
       let data = {
-        Id: studentToEdit.id,
-        Name: student.name,
-        Email: student.email,
-        Phone: student.phone,
-        Dob: student.dob,
-        Password: student.password,
-        ConfirmPassword: student.confirmPassword,
+        Student: {
+          Id: studentToEdit.id,
+          Name: student.name,
+          Email: student.email,
+          Phone: student.phone,
+          Dob: student.dob,
+          Password: student.password,
+          ConfirmPassword: student.confirmPassword,
+        },
+        Courses: student.coursesList,
       };
 
       ajaxCall(
+        "student",
         null,
         data,
         "PUT",
@@ -69,16 +79,21 @@ function onSave(index) {
         }
       );
     } else {
+      // ajax call for post
       let data = {
-        Name: student.name,
-        Email: student.email,
-        Phone: student.phone,
-        Dob: student.dob,
-        Password: student.password,
-        ConfirmPassword: student.confirmPassword,
+        Student: {
+          Name: student.name,
+          Email: student.email,
+          Phone: student.phone,
+          Dob: student.dob,
+          Password: student.password,
+          ConfirmPassword: student.confirmPassword,
+        },
+        Courses: student.coursesList,
       };
 
       ajaxCall(
+        "student",
         null,
         data,
         "POST",
@@ -88,6 +103,7 @@ function onSave(index) {
         },
         () => {
           alert("Failed to add student");
+          console.log(data);
         }
       );
     }
@@ -100,6 +116,7 @@ function onCancel() {
 
 function onDelete(studentId) {
   ajaxCall(
+    "student",
     `?Id=${studentId}`,
     null,
     "DELETE",
@@ -110,34 +127,35 @@ function onDelete(studentId) {
       alert("Failed to delete");
     }
   );
-
-  // $.ajax({
-  //   url: "https://localhost:44380/api/student?Id=" + studentId,
-  //   method: "DELETE",
-  //   success: function () {
-  //     window.location.reload();
-  //   },
-  // }).fail(function () {
-  //   alert("Failed to delete student");
-  // });
 }
 
 function refillForm(index) {
-  $("#username").val(studentsArray[index].name);
-  $("#email").val(studentsArray[index].email);
-  $("#phone").val(studentsArray[index].phone);
-  $("#dob").val(studentsArray[index].dob);
-  $("#password").val(studentsArray[index].password);
-  $("#confirm-password").val(studentsArray[index].confirmPassword);
+  // refilling the form with user data when edit is clicked
+
+  $("#username").val(studentsArray[index].student.name);
+  $("#email").val(studentsArray[index].student.email);
+  $("#phone").val(studentsArray[index].student.phone);
+  $("#dob").val(studentsArray[index].student.dob);
+  $("#password").val(studentsArray[index].student.password);
+  $("#confirm-password").val(studentsArray[index].student.confirmPassword);
+
+  $("#select-courses")
+    .val([...studentsArray[index].courses])
+    .prop("selected", true);
 }
 
 function onEdit(index) {
+  // Disabling the edit and delete buttons for all records other than the one being edited
+
   for (i = 0; i < studentsArray.length; i++) {
     if (i != index) {
       $(`#edit-${i}`).attr("disabled", true);
       $(`#delete-${i}`).attr("disabled", true);
     }
   }
+
+  let coursesDropdown = renderCoursesDropdown();
+
   let row = `<tr id="${index}">
     <td><input type="text" id="username"/></td>
     <td><input type="email" id="email"/></td>
@@ -145,9 +163,13 @@ function onEdit(index) {
     <td><input type="date" id="dob"/></td>
     <td><input type="password" id="password"/></td>
     <td><input type="password" id="confirm-password"/></td>
+    <td>${coursesDropdown}</td>
     <td><button onclick="onSave(${index})">Save</button></td>
     <td><button onclick="onCancel()">Cancel</button></td>
     </tr>`;
+
+  // Determined where to render the form in table using index recieved
+
   if (index === 0) {
     $(`#row-${index}`).remove();
     $("#student-records").prepend(row);
@@ -161,42 +183,94 @@ function onEdit(index) {
   refillForm(index);
 }
 
+function getCourses() {
+  ajaxCall(
+    "course",
+    null,
+    null,
+    "GET",
+    (data) => {
+      coursesFromApi = JSON.parse(JSON.stringify(data));
+      console.log(coursesFromApi);
+    },
+    () => {
+      alert("Failed to get courses");
+    }
+  );
+}
+
+function renderCoursesInTable(element) {
+  // Filtered the courses array and got a new array with courses in which student has enrolled
+  // then returned html markup for rendering it
+
+  let filteredArray = [];
+  for (i = 0; i < coursesFromApi.length; i++) {
+    let array = coursesFromApi.filter(
+      (value) => value.id == parseInt(element.courses[i])
+    );
+    if (array[0]) filteredArray.push(array[0]);
+  }
+  console.log(filteredArray);
+
+  return filteredArray.length != 0
+    ? `<ul>${filteredArray.map((value) => `<li>${value.name}</li>`)}</ul>`
+    : "<ul><li>No Courses</li></ul>";
+}
+
+function renderCoursesDropdown() {
+  //Rendering select list for courses inside the table
+
+  let coursesDropdown = `<select id="select-courses" multiple>${coursesFromApi.map(
+    (element) => `<option value="${element.id}">${element.name}</option>`
+  )}</select>`;
+
+  return coursesDropdown;
+}
+
 function renderFormInTable() {
+  // Form for adding the students
+
   let index = arrayLength;
-  let row = `<tr>
-<td><input type="text" id="username"/></td>
-<td><input type="email" id="email"/></td>
-<td><input type="text" id="phone"/></td>
-<td><input type="date" id="dob"/></td>
-<td><input type="password" id="password"/></td>
-<td><input type="password" id="confirm-password"/></td>
+  let coursesDropdown = renderCoursesDropdown();
+
+  let row = `<tr id="row-form">
+<td><input type="text" id="username" required/></td>
+<td><input type="email" id="email" required/></td>
+<td><input type="text" id="phone" required/></td>
+<td><input type="date" id="dob" required/></td>
+<td><input type="password" id="password" required/></td>
+<td><input type="password" id="confirm-password" required/></td>
+<td>${coursesDropdown}</td>
 <td><button onclick="onSave(${index})">Save</button></td>
 <td><button onclick="onCancel()">Cancel</button></td>
 </tr>`;
+
   $("#student-records").append(row);
   $("#add-new-student").attr("disabled", true);
 }
 
-function renderTable(dataFromApi) {
-  studentsArray = JSON.parse(JSON.stringify(dataFromApi));
+function renderTable(dataFromStudentsApi) {
+  studentsArray = JSON.parse(JSON.stringify(dataFromStudentsApi));
   if (studentsArray === null) studentsArray = [];
   console.log(studentsArray);
   arrayLength = studentsArray.length;
   let table = studentsArray.map(
     (element, index) => `<tr id="row-${index}">
-        <td>${element.name}</td>
-        <td>${element.email}</td>
-        <td>${element.phone}</td>
-        <td>${new Date(element.dob).toDateString()}</td>
-        <td>${element.password}</td>
-        <td>${element.confirmPassword}</td>
+        <td>${element.student.name}</td>
+        <td>${element.student.email}</td>
+        <td>${element.student.phone}</td>
+        <td>${new Date(element.student.dob).toDateString()}</td>
+        <td>${element.student.password}</td>
+        <td>${element.student.confirmPassword}</td>
+        <td>${renderCoursesInTable(element)}</td>
         <td><button id="edit-${index}" onclick="onEdit(${index})">Edit</button></td>
         <td><button id="delete-${index}" onclick="onDelete(${
-      element.id
+      element.student.id
     })">Delete</button></td>
         </tr>`
   );
   $("#student-records").append(table);
 }
 
+getCourses();
 getStudents();
