@@ -1,0 +1,79 @@
+﻿@model Data.ViewModel.StudentFormViewModel
+@{
+    ViewBag.Title = "StudentForm";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>StudentForm</h2>
+@using (Html.BeginForm("AddStudent", "Student"))
+{
+    @Html.HiddenFor(m =>m.Student.Id )
+    <div class="form-group">
+        @Html.LabelFor(m => m.Student.Name)
+        @Html.TextBoxFor(m => m.Student.Name, new { @class = "form-control" })
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(m => m.Student.Email)
+        @Html.TextBoxFor(m => m.Student.Email, new { @class = "form-control" })
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(m => m.Student.Phone)
+        @Html.TextBoxFor(m => m.Student.Phone, new { @class = "form-control" })
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(m => m.Student.Dob)
+        @Html.TextBoxFor(m => m.Student.Dob,"{0:d MMM yyyy}", new { @class = "form-control" })
+    </div>
+    
+    <div class="form-group">
+        <select multiple name="Courses" id="select-courses">
+            @if (Model.Courses == null)
+            {
+                foreach (var course in Model.CoursesList)
+                {
+                    <option value="@course.Id">@course.Name</option>
+                }
+            }
+            else
+            {
+                
+                foreach (var course in Model.CoursesList)
+                {
+                    var courseCheck = false;
+                    foreach (var studentCourseId in Model.Courses)
+                    {
+                        if (studentCourseId == course.Id.ToString())
+                        {
+                            <option selected value="@course.Id">@course.Name</option>
+                            courseCheck = true;
+                        }
+                    }
+                    if (!courseCheck) {
+                        <option value="@course.Id">@course.Name</option>
+                    }
+
+                }
+
+            }
+            }
+        </select>
+    </div>
+    
+    <div class="form-group">
+        @Html.LabelFor(m => m.Student.Password)
+        @Html.TextBoxFor(m => m.Student.Password, new { @class = "form-control" })
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(m => m.Student.ConfirmPassword)
+        @Html.TextBoxFor(m => m.Student.ConfirmPassword, new { @class = "form-control" })
+    </div>
+    <button type="submit" class="btn btn-primary">Save</button>
+}
+
+@section scripts{
+   
+    }

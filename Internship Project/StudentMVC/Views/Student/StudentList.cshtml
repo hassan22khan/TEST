@@ -1,0 +1,52 @@
+﻿@model Data.ViewModel.StudentCourseViewModel
+@{
+    ViewBag.Title = "StudentList";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<a class="btn btn-primary" href="@Url.Action("StudentForm","Student")">Add New Student</a>
+<table id="students-records">
+    <thead>
+    <th>Name</th>
+    <th>Email</th>
+    <th>Contact Number</th>
+    <th>Date Of Birth</th>
+    <th>Courses</th>
+    <th>Password</th>
+    <th>Confirm Password</th>
+    </thead>
+    <tbody>
+        @foreach (var viewModel in Model.StudentViewModels)
+        {
+        <tr>
+            <td>@viewModel.Student.Name</td>
+            <td>@viewModel.Student.Email</td>
+            <td>@viewModel.Student.Phone</td>
+            <td>@viewModel.Student.Dob.ToString("MM/dd/yy")</td>
+            <td>
+                <ul>
+                    @foreach (var courseId in viewModel.Courses)
+                    {
+                        var course = Model.Courses.SingleOrDefault(c => c.Id == Convert.ToInt32(courseId));
+                        <li>@course.Name</li>
+                    }
+                </ul>
+            </td>
+            <td>@viewModel.Student.Password</td>
+            <td>@viewModel.Student.ConfirmPassword</td>
+            <td><button class="btn btn-warning"><a href="@Url.Action("EditStudent","Student", new { id = viewModel.Student.Id})">Edit</a></button></td>
+            <td><button class="btn btn-danger"><a href="@Url.Action("DeleteStudent","Student",new { id = viewModel.Student.Id})">Delete</a></button></td>
+
+        </tr>
+        }
+    </tbody>
+</table>
+
+@section scripts{
+    <script>
+        $(document).ready(function () {
+            $("#students-records").DataTable();
+        });
+    </script>
+
+}
