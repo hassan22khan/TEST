@@ -19,18 +19,16 @@ namespace StudentMVC.Controllers
         }
 
         [HttpPost]
-        public ActionResult GetStudentsInJson()
+        public ActionResult GetStudentsInJson(DataTablesParam param)
         {
-            
-            var start = Request.Form.GetValues("start").FirstOrDefault();
-            var length = Request.Form.GetValues("length").FirstOrDefault();
-            int pageSize = length != null ? Convert.ToInt32(length) : 0;
-            int skip = start != null ? Convert.ToInt32(start) : 0;
+
+            int pageSize = param.Length != null ? param.Length: 0;
+            int skip = param.Start != null ? param.Start : 0;
             var studentListViewModels = studentService.GetStudentListWithCourses(studentService.GetAll());
             
             return Json(
                 new {
-                    draw = Request.Form.GetValues("draw").FirstOrDefault(),
+                    draw = param.Draw,
                     recordsFiltered = studentListViewModels.Count(),
                     recordsTotal = studentListViewModels.Count(),
                     data = studentListViewModels.Skip(skip).Take(pageSize).ToList()
