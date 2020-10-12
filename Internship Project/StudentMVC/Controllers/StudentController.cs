@@ -1,39 +1,46 @@
 ﻿using Data.Model;
 using Repository;
 using Data.ViewModel;
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Web;
 using System.Web.Mvc;
-using Data.ViewModel;
-using Models;
+using StudentData.ViewModel;
+using System;
 
 namespace StudentMVC.Controllers
 {
     public class StudentController : Controller
     {
-        StudentRepository service = new StudentRepository(new StudentContext());
+        StudentRepository studentService = new StudentRepository(new StudentContext());
         CoursesRepository courseService = new CoursesRepository(new StudentContext());
-        // GET: Student
         
         public ActionResult StudentList()
         {
-            var students = service.GetAll();
-            var studentViewModels = service.GetStudentCourses(students).ToList();
-            var courses = courseService.GetAll().ToList();
+            return View();
+        }
 
-            var studentCourseViewModel = new StudentCourseViewModel 
-                { StudentViewModels = studentViewModels , Courses = courses };
+        [HttpPost]
+        public ActionResult GetStudentsInJson()
+        {
             
-            return View(studentCourseViewModel);
+            var start = Request.Form.GetValues("start").FirstOrDefault();
+            var length = Request.Form.GetValues("length").FirstOrDefault();
+            int pageSize = length != null ? Convert.ToInt32(length) : 0;
+            int skip = start != null ? Convert.ToInt32(start) : 0;
+            var studentListViewModels = studentService.GetStudentListWithCourses(studentService.GetAll());
+            
+            return Json(
+                new {
+                    draw = Request.Form.GetValues("draw").FirstOrDefault(),
+                    recordsFiltered = studentListViewModels.Count(),
+                    recordsTotal = studentListViewModels.Count(),
+                    data = studentListViewModels.Skip(skip).Take(pageSize).ToList()
+                }
+                , JsonRequestBehavior.AllowGet);
         }
 
         public ActionResult StudentForm()
         {
-            var courses = courseService.GetAll();
-            var viewModel = new StudentFormViewModel { CoursesList = courses.ToList()};
-            return View(viewModel);
+            return View(new StudentFormViewModel { CoursesList = courseService.GetAll().ToList() });
         }
 
         [HttpPost]
@@ -42,37 +49,34 @@ namespace StudentMVC.Controllers
             var studentViewModel = new StudentViewModel { Student = studentFormViewModel.Student, Courses = studentFormViewModel.Courses };
             if (studentFormViewModel.Student.Id == 0)
             {              
-                service.Post(studentFormViewModel.Student);
-                service.AddStudentCourses(studentViewModel);
+                studentService.Post(studentFormViewModel.Student);
+                studentService.AddStudentCourses(studentViewModel);
             }
             else
             {
-                service.Update(studentFormViewModel.Student);
-                service.UpdatedStudentCourses(studentViewModel);
+                studentService.Update(studentFormViewModel.Student);
+                studentService.UpdatedStudentCourses(studentViewModel);
             }
-
             return RedirectToAction("StudentList");
         }
 
         public ActionResult EditStudent(int id)
         {
-            var students = service.GetAll();
-            var studentViewModels = service.GetStudentCourses(students).ToList();
-            var viewModel = studentViewModels.SingleOrDefault(svm => svm.Student.Id == id);
-            var studentFormViewModel = new StudentFormViewModel
-            {
-                Student = viewModel.Student,
-                CoursesList = courseService.GetAll().ToList(),
-                Courses = viewModel.Courses
-            };
-            return View("StudentForm", studentFormViewModel);
+            var studentViewModel = studentService.GetOneStudentWithCourses(studentService.GetOne(id));
             
+            return View("StudentForm",
+                new StudentFormViewModel
+            {
+                Student = studentViewModel.Student,
+                CoursesList = courseService.GetAll().ToList(),
+                Courses = studentViewModel.Courses
+            });
         }
 
         public ActionResult DeleteStudent(int id)
         {
-            service.Delete(id);
-            service.DeleteStudentCourses(id);
+            studentService.DeleteStudentCourses(id);
+            studentService.Delete(id);
             return RedirectToAction("StudentList");
         }
     }
