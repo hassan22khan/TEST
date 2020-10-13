@@ -10,8 +10,8 @@ namespace StudentMVC.Controllers
 {
     public class StudentController : Controller
     {
-        StudentRepository studentService = new StudentRepository(new StudentContext());
-        CoursesRepository courseService = new CoursesRepository(new StudentContext());
+        StudentRepository studentService = new StudentRepository();
+        CoursesRepository courseService = new CoursesRepository();
         
         public ActionResult StudentList()
         {
@@ -21,17 +21,13 @@ namespace StudentMVC.Controllers
         [HttpPost]
         public ActionResult GetStudentsInJson(DataTablesParam param)
         {
-
-            int pageSize = param.Length != null ? param.Length: 0;
-            int skip = param.Start != null ? param.Start : 0;
-            var studentListViewModels = studentService.GetStudentListWithCourses(studentService.GetAll());
-            
+            var studentListViewModels = studentService.GetStudentListWithCourses(studentService.GetStudentsPerPage(param));
             return Json(
                 new {
                     draw = param.Draw,
                     recordsFiltered = studentListViewModels.Count(),
                     recordsTotal = studentListViewModels.Count(),
-                    data = studentListViewModels.Skip(skip).Take(pageSize).ToList()
+                    data = studentListViewModels
                 }
                 , JsonRequestBehavior.AllowGet);
         }
@@ -44,11 +40,22 @@ namespace StudentMVC.Controllers
         [HttpPost]
         public ActionResult AddStudent(StudentFormViewModel studentFormViewModel)
         {
+           /* if (!ModelState.IsValid || studentFormViewModel.Student.Password != studentFormViewModel.Student.ConfirmPassword)
+            {
+                studentFormViewModel.CoursesList = courseService.GetAll().ToList();
+                return View("StudentForm", studentFormViewModel);
+            }*/
+
             var studentViewModel = new StudentViewModel { Student = studentFormViewModel.Student, Courses = studentFormViewModel.Courses };
             if (studentFormViewModel.Student.Id == 0)
-            {              
-                studentService.Post(studentFormViewModel.Student);
-                studentService.AddStudentCourses(studentViewModel);
+            {
+                // Managed by Stored Procedure          
+                //studentService.Post(studentFormViewModel.Student);
+                //studentService.AddStudentCourses(studentViewModel);
+               
+                //Managed By Stored Procedures
+                decimal id = studentService.AddStudentByStoredProcedure(studentFormViewModel.Student);
+                if(id != 0) studentService.AddStudentCoursesByStoreProcedure(studentViewModel,id);
             }
             else
             {
