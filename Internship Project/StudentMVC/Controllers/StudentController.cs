@@ -1,16 +1,15 @@
-﻿using Data.Model;
+﻿using Microsoft.AspNet.Identity;
 using Repository;
-using Data.ViewModel;
+using StudentRepository.ViewModels;
 using System.Linq;
 using System.Web.Mvc;
-using StudentData.ViewModel;
-using System;
 
 namespace StudentMVC.Controllers
 {
+    [Authorize]
     public class StudentController : Controller
     {
-        StudentRepository studentService = new StudentRepository();
+        StudentsRepository studentService = new StudentsRepository();
         CoursesRepository courseService = new CoursesRepository();
         
         public ActionResult StudentList()
@@ -21,7 +20,7 @@ namespace StudentMVC.Controllers
         [HttpPost]
         public ActionResult GetStudentsInJson(DataTablesParam param)
         {
-            var studentListViewModels = studentService.GetStudentListWithCourses(studentService.GetStudentsPerPage(param));
+            var studentListViewModels = studentService.GetStudentListWithCourses(studentService.GetStudentsPerPage(param,User.Identity.GetUserId()));
             return Json(
                 new {
                     draw = param.Draw,
@@ -40,22 +39,21 @@ namespace StudentMVC.Controllers
         [HttpPost]
         public ActionResult AddStudent(StudentFormViewModel studentFormViewModel)
         {
-           /* if (!ModelState.IsValid || studentFormViewModel.Student.Password != studentFormViewModel.Student.ConfirmPassword)
-            {
-                studentFormViewModel.CoursesList = courseService.GetAll().ToList();
-                return View("StudentForm", studentFormViewModel);
-            }*/
-
+            studentFormViewModel.Student.UserId = User.Identity.GetUserId();
+            /* if (!ModelState.IsValid || studentFormViewModel.Student.Password != studentFormViewModel.Student.ConfirmPassword)
+             {
+                 studentFormViewModel.CoursesList = courseService.GetAll().ToList();
+                 return View("StudentForm", studentFormViewModel);
+             }*/
             var studentViewModel = new StudentViewModel { Student = studentFormViewModel.Student, Courses = studentFormViewModel.Courses };
             if (studentFormViewModel.Student.Id == 0)
             {
-                // Managed by Stored Procedure          
-                //studentService.Post(studentFormViewModel.Student);
-                //studentService.AddStudentCourses(studentViewModel);
-               
+                // Managed by Entity Framework          
+                studentService.Post(studentFormViewModel.Student);
+                studentService.AddStudentCourses(studentViewModel);
                 //Managed By Stored Procedures
-                decimal id = studentService.AddStudentByStoredProcedure(studentFormViewModel.Student);
-                if(id != 0) studentService.AddStudentCoursesByStoreProcedure(studentViewModel,id);
+                //decimal id = studentService.AddStudentByStoredProcedure(studentFormViewModel.Student);
+                //if(id != 0) studentService.AddStudentCoursesByStoreProcedure(studentViewModel,id);
             }
             else
             {
