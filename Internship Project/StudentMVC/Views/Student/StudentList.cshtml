@@ -1,0 +1,81 @@
+﻿@model IEnumerable<Models.Course>
+@{
+    ViewBag.Title = "StudentList";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<a class="btn btn-primary" href="@Url.Action("StudentForm","Student")">Add New Student</a>
+<table id="students-records">
+    <thead>
+    <th>Name</th>
+    <th>Email</th>
+    <th>Contact Number</th>
+    <th>Date Of Birth</th>
+    <th>Courses</th>
+    <th>Password</th>
+    <th>Confirm Password</th>
+    <th>Edit</th>
+    <th>Delete</th>
+    </thead>
+    <tbody>
+    </tbody>
+</table>
+@section scripts{
+    <script>
+        $(document).ready(function () {
+            $("#students-records").DataTable({
+                
+                serverSide: true,
+                processing: true,
+                orderMulti: false,
+                ajax: {
+                    url: "/Student/GetStudentsInJson",
+                    method:"POST",
+                    dataSrc :"data",
+                },
+                columns: [
+                    {
+                        data: "Student.Name"
+                    },
+                    {
+                        data: "Student.Email"
+                    },
+                    {
+                        data: "Student.Phone"
+                    },
+                    {
+                        data: "Student.Dob",
+                    },
+                    {
+                        data:"Courses",
+                        render: function (data, type, row) {
+                            let list = "<ul>";
+                            row.Courses.forEach(course => { list += `<li>${course}</li>` });
+                            list += "</ul>";
+                            return list;
+                        }
+                    },
+                    {
+                        data:"Student.Password"
+                    },
+                    {
+                        data :"Student.ConfirmPassword"
+                    },
+                    {
+                        data: "Student.Id",
+                        render: function (data,type,row) {
+                            return `<a href="/Student/EditStudent/${data}"><button class="btn btn-warning">Edit</button></a>`;
+                        }
+                    },
+                    {
+                        data: "Student.Id",
+                        render: function (data,type,row) {
+                            return `<a href="/Student/DeleteStudent/${data}"><button class="btn btn-danger">Delete</button></a>`;
+                        }
+                    }
+                ]
+            });
+        });
+    </script>
+
+}
