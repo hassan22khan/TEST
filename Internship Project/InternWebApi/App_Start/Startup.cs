@@ -1,9 +1,9 @@
 ﻿using System;
-using System.Threading.Tasks;
-using System.Web.Http;
-using InternWebApi.Configuration;
+using DependencyResolver;
+using IRepository;
 using Microsoft.Owin;
 using Microsoft.Owin.Security.OAuth;
+using Ninject;
 using Owin;
 
 [assembly: OwinStartup(typeof(InternWebApi.Startup))]
@@ -12,14 +12,15 @@ namespace InternWebApi
 {
     public partial class Startup
     {
-        public static OAuthAuthorizationServerOptions OAuthOptions { get; private set; }
-
+        public static OAuthAuthorizationServerOptions OAuthOptions { get;  private set; }
         static Startup()
         {
+            IKernel kernel = new StandardKernel(new NinjectBindings());
+            var userRepository = kernel.Get<IUserRepository>();
             OAuthOptions = new OAuthAuthorizationServerOptions
             {
                 TokenEndpointPath = new PathString("/Login"),
-                Provider = new MyAuthorizationServerProvider(),
+                Provider = new MyAuthorizationServerProvider(userRepository),
                 AccessTokenExpireTimeSpan = TimeSpan.FromDays(2),
                 AllowInsecureHttp = true
             };
