@@ -1,41 +1,44 @@
 ﻿using Data.Model;
-using StudentData.ViewModel;
+using IData;
+using IRepository;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
-using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Repository
 {
     public class BaseRepository<T> : IBaseRepository<T> where T : class
     {
-        public StudentContext _context = new StudentContext();
+        private IStudentContext _context;
+        private DbSet<T> _dbSet;
+        public BaseRepository(IStudentContext context)
+        {
+            _context = context;
+            _dbSet = _context.Set<T>();
+        }
 
         public IEnumerable<T> GetAll()
         {
             try
             {
-                return _context.Set<T>().ToList();
+                return _dbSet.ToList();
             }catch(Exception e)
             {
                 throw new Exception("Unable to get entities");
             }
-            
         }
 
         public T GetOne(int id)
         {
-            return _context.Set<T>().Find(id);
+            return _dbSet.Find(id);
         }
 
         public void Post(T tObject)
         {
             try
             {
-                _context.Set<T>().Add(tObject);
+                _dbSet.Add(tObject);
                 _context.SaveChanges();
             }
             catch (Exception)
@@ -51,11 +54,10 @@ namespace Repository
                 _context.Entry(tObject).State = EntityState.Modified;
                 _context.SaveChanges();
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                throw new Exception("Couldn't update entities");
+                throw new Exception(e.Message);
             }
-
         }
 
         public void Delete(int id)
@@ -70,7 +72,6 @@ namespace Repository
             {
                 throw new Exception("Couldn't delete entities");
             }
-
         }
 
         public void AddRange(List<T> list)
