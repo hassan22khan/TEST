@@ -1,4 +1,9 @@
 ﻿using IRepository;
+using System;
+using System.Drawing;
+using System.Drawing.Imaging;
+using System.IO;
+using System.Web;
 using System.Web.Http;
 using ViewModels;
 
@@ -21,10 +26,25 @@ namespace InternWebApi.Controllers
             return Ok(_repo.GetStudentCourses(students));
         }
 
-        [HttpPost]
+        [HttpPost] 
         public IHttpActionResult PostStudent(StudentViewModel viewModel)
         {
-            if (viewModel.Student == null) return BadRequest();
+            char[] seperator = { ':', '/', ';' };
+            String[] strlist = viewModel.ImageFile[0].Split(seperator);
+            byte[] bytes = Convert.FromBase64String(viewModel.ImageFile[1]);
+            Image image;
+            using (MemoryStream ms = new MemoryStream(bytes))
+            {
+                image = Image.FromStream(ms);
+            }
+            var subpath = "~/Images/";
+            bool exist = System.IO.Directory.Exists(HttpContext.Current.Server.MapPath(subpath));
+            if (!exist) Directory.CreateDirectory(HttpContext.Current.Server.MapPath(subpath));
+            var fileName = strlist[1] + "." + strlist[2];
+            var filepath = HttpContext.Current.Server.MapPath("~/Images/");
+            var path = Path.Combine(filepath, fileName);
+            image.Save(path, ImageFormat.Png);
+            viewModel.Student.ImagePath = fileName;
             _repo.Post(viewModel.Student);
             _repo.AddStudentCourses(viewModel);
             return Ok("posted student");
@@ -42,7 +62,31 @@ namespace InternWebApi.Controllers
         public IHttpActionResult UpdateStudent(StudentViewModel viewModel)
         {
             if (viewModel.Student == null) return BadRequest();
-            _repo.Update(viewModel.Student);
+            char[] seperator = { ':', '/', ';' };
+            String[] strlist = viewModel.ImageFile[0].Split(seperator);
+            byte[] bytes = Convert.FromBase64String(viewModel.ImageFile[1]);
+            Image image;
+            using (MemoryStream ms = new MemoryStream(bytes))
+            {
+                image = Image.FromStream(ms);
+            }
+            var subpath = "~/Images/";
+            bool exist = System.IO.Directory.Exists(HttpContext.Current.Server.MapPath(subpath));
+            if (!exist) Directory.CreateDirectory(HttpContext.Current.Server.MapPath(subpath));
+            var fileName = strlist[1] + "." + strlist[2];
+            var filepath = HttpContext.Current.Server.MapPath("~/Images/");
+            var path = Path.Combine(filepath, fileName);
+            image.Save(path, ImageFormat.Png);
+            var studentInDb = _repo.GetOne(viewModel.Student.Id);
+            studentInDb.Name = viewModel.Student.Name;
+            studentInDb.Email = viewModel.Student.Email;
+            studentInDb.Phone = viewModel.Student.Phone;
+            studentInDb.Password = viewModel.Student.Password;
+            studentInDb.ConfirmPassword = viewModel.Student.ConfirmPassword;
+            studentInDb.Dob = (DateTime)viewModel.Student.Dob;
+            studentInDb.ImagePath = fileName;
+            studentInDb.UserId = viewModel.Student.UserId;
+            _repo.Update(studentInDb);
             _repo.UpdatedStudentCourses(viewModel);
             return Ok("updated the student");
         }

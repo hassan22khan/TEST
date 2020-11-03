@@ -53,11 +53,18 @@ namespace WindowsForm
         private void EditButton_Click(object sender, EventArgs e)
         {
             int id = Convert.ToInt32(studentListDataGridView.Rows[studentListDataGridView.CurrentRow.Index].Cells[0].Value);
+            string imageName = studentListDataGridView.Rows[studentListDataGridView.CurrentRow.Index].Cells[8].Value.ToString();
             this.Dispose();
             var studentForm = new StudentForm(_repository, _studentRepository, _userId,id);
             studentForm.Show();
-            studentForm.RefillForm();
-            
+            studentForm.RefillForm(imageName);
+        }
+
+        private void UploadImageButton_Click(object sender, EventArgs e)
+        {
+            int studentId = Convert.ToInt32(studentListDataGridView.Rows[studentListDataGridView.CurrentRow.Index].Cells[0].Value);
+            //var imgUploadForm = new ImageUploadForm(studentId);
+            //imgUploadForm.Show();
         }
     }
 }

@@ -1,10 +1,9 @@
-﻿using DependencyResolver;
-using IData;
-using IRepository;
+﻿using IRepository;
 using Models;
-using Ninject;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
+using System.IO;
 using System.Windows.Forms;
 using ViewModels;
 
@@ -41,6 +40,9 @@ namespace WindowsForm
                 coursesIdList.Add(courseModel.Id.ToString());
             }
 
+            var fileName = Path.GetFileName(ImagePath.Text);
+            if(ImagePath.Text != Path.Combine(@"D:\intern-repo\Internship Project\WindowsForm\Images\", fileName))
+            File.Copy(ImagePath.Text, Path.Combine(@"D:\intern-repo\Internship Project\WindowsForm\Images\", fileName), true);
             var studentViewModel = new StudentViewModel { 
                 Student = new Student 
                 {   Id = _studentId,
@@ -50,7 +52,8 @@ namespace WindowsForm
                     Phone = ContactNumber.Text,
                     Password = Password.Text,
                     ConfirmPassword = ConfirmPassword.Text,
-                    UserId = _userId 
+                    UserId = _userId,
+                    ImagePath = fileName
                 },
                 Courses = coursesIdList
             };
@@ -70,6 +73,7 @@ namespace WindowsForm
                 studentInDb.Password = Password.Text;
                 studentInDb.ConfirmPassword = ConfirmPassword.Text;
                 studentInDb.UserId = _userId;
+                studentInDb.ImagePath = fileName;
                 _studentRepository.Update(studentInDb);
                 _studentRepository.UpdatedStudentCourses(studentViewModel);
             }
@@ -77,7 +81,7 @@ namespace WindowsForm
             new StudentList(_repository, _studentRepository, _userId).Show();
         }
 
-        public void RefillForm()
+        public void RefillForm(string imageName)
         {
            var student = _studentRepository.GetOne(_studentId);
             var studentViewModel = _studentRepository.GetOneStudentWithCourses(student);
@@ -87,6 +91,8 @@ namespace WindowsForm
             ContactNumber.Text = student.Phone;
             Password.Text = student.Password;
             ConfirmPassword.Text = student.ConfirmPassword;
+            UploadImage.Image = new Bitmap(@"D:\intern-repo\Internship Project\WindowsForm\Images\" + imageName);
+            ImagePath.Text = Path.GetFullPath(@"D:\intern-repo\Internship Project\WindowsForm\Images\" + imageName);
             CoursesList.DataSource = _repository.GetAll();
             CoursesList.DisplayMember = "Name";
             CoursesList.ValueMember = "Id";
@@ -102,6 +108,17 @@ namespace WindowsForm
                         break;
                     }
                 }
+            }
+        }
+
+        private void UploadImageButton_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            openFileDialog.Filter = "Image Files (*.jpg;*.jpeg;.*.gif;)|*.jpg;*.jpeg;.*.gif";
+            if (openFileDialog.ShowDialog() == DialogResult.OK)
+            {
+                ImagePath.Text = openFileDialog.FileName;
+                UploadImage.Image = new Bitmap(openFileDialog.FileName);
             }
         }
     }
