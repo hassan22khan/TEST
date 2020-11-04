@@ -14,13 +14,12 @@ initializeSession();
 function alertAuthorizationStatus(){
 if(sessionStorage.getItem("accessToken") == null) {
   alert("You are unauthorized. Please Login");
-   location.href = "http://127.0.0.1:5500/logUser.html";}
+   location.href = window.location.origin + "/logUser.html";}
 }
 
 alertAuthorizationStatus();
 
 function getStudentData() {
-  debugger;
   student.name = $("#username").val();
   student.phone = $("#phone").val();
   student.email = $("#email").val();
@@ -31,7 +30,6 @@ function getStudentData() {
 }
 
 function getStudents() {
-  debugger;
   let userId = JSON.parse(sessionStorage.getItem("dataPlusToken")).UserId;
   ajaxCall(
     "student/" + userId,
@@ -63,17 +61,15 @@ function validate(student) {
     alert("Password is not valid");
     validation = false;
   }
-  //return validation;
-  return true;
-}
+  return validation;
+  }
 
 function encodingImageAsUrl(imageFile){
-  debugger;
+  
 if(imageFile && imageFile.files[0]){
   var fileSelected = imageFile.files[0];
   var fileReader = new FileReader();
-  fileReader.onload = function(FileLoadEvent){
-    debugger;
+  fileReader.onload = function(FileLoadEvent){ 
     var srcData = FileLoadEvent.target.result;
     let baseArray = srcData.split(",");
     imageBase64 = baseArray;
@@ -120,8 +116,6 @@ function onSave(index) {
       );
     } else {
       // ajax call for post
-      debugger;
-       //encodingImageAsUrl(student.imageData)
       let data = {
         Student: {
           Name: student.name,
@@ -143,7 +137,6 @@ function onSave(index) {
         "POST",
         undefined,
         () => {
-          debugger;
           $("#add-new-student").attr("disabled", false);
           window.location.reload();
         },
@@ -232,15 +225,13 @@ function onEdit(index) {
 }
 
 function getCourses() {
-  debugger;
   ajaxCall(
     "course",
     null,
     null,
     "GET",
     undefined,
-    (data) => {
-      debugger;
+    (data) => { 
       coursesFromApi = JSON.parse(JSON.stringify(data));
       console.log(coursesFromApi);
     },
@@ -327,7 +318,7 @@ function renderTable(dataFromStudentsApi) {
 function logOut(){
   sessionStorage.removeItem("accessToken");
   sessionStorage.removeItem("dataPlusToken");
-  location.href = "http://127.0.0.1:5500/logUser.html";
+  location.href = window.location.origin + "/logUser.html";
 }
 getCourses();
 getStudents();

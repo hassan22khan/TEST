@@ -12,18 +12,18 @@ namespace InternWebApi.Controllers
     [Authorize]
     public class StudentController : ApiController
     {
-        private IStudentsRepository _repo;
+        private IStudentsRepository _studentRepository;
         public StudentController(IStudentsRepository repo)
         {
-            _repo = repo;
+            _studentRepository = repo;
         }
 
         [HttpGet]
         public IHttpActionResult GetStudents(string id)
         {
-            var students = _repo.GetStudentsForEachUser(id);
+            var students = _studentRepository.GetStudentsForEachUser(id);
             if (students == null) return NotFound();
-            return Ok(_repo.GetStudentCourses(students));
+            return Ok(_studentRepository.GetStudentCourses(students));
         }
 
         [HttpPost] 
@@ -45,16 +45,16 @@ namespace InternWebApi.Controllers
             var path = Path.Combine(filepath, fileName);
             image.Save(path, ImageFormat.Png);
             viewModel.Student.ImagePath = fileName;
-            _repo.Post(viewModel.Student);
-            _repo.AddStudentCourses(viewModel);
+            _studentRepository.Post(viewModel.Student);
+            _studentRepository.AddStudentCourses(viewModel);
             return Ok("posted student");
         }
 
         [HttpDelete]
         public IHttpActionResult DeleteStudent(int id)
         {
-            _repo.Delete(id);
-            _repo.DeleteStudentCourses(id);
+            _studentRepository.Delete(id);
+            _studentRepository.DeleteStudentCourses(id);
             return Ok("Deleted student");
         }
 
@@ -73,7 +73,7 @@ namespace InternWebApi.Controllers
             var subpath = "~/Images/";
             bool exist = System.IO.Directory.Exists(HttpContext.Current.Server.MapPath(subpath));
             if (!exist) Directory.CreateDirectory(HttpContext.Current.Server.MapPath(subpath));
-            var studentInDb = _repo.GetOne(viewModel.Student.Id);
+            var studentInDb = _studentRepository.GetOne(viewModel.Student.Id);
             var fileName = studentInDb.ImagePath;
             var filepath = HttpContext.Current.Server.MapPath("~/Images/");
             var path = Path.Combine(filepath, fileName);
@@ -86,8 +86,8 @@ namespace InternWebApi.Controllers
             studentInDb.Dob = (DateTime)viewModel.Student.Dob;
             studentInDb.ImagePath = fileName;
             studentInDb.UserId = viewModel.Student.UserId;
-            _repo.Update(studentInDb);
-            _repo.UpdatedStudentCourses(viewModel);
+            _studentRepository.Update(studentInDb);
+            _studentRepository.UpdatedStudentCourses(viewModel);
             return Ok("updated the student");
         }
     }
