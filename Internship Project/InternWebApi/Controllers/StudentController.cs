@@ -40,7 +40,7 @@ namespace InternWebApi.Controllers
             var subpath = "~/Images/";
             bool exist = System.IO.Directory.Exists(HttpContext.Current.Server.MapPath(subpath));
             if (!exist) Directory.CreateDirectory(HttpContext.Current.Server.MapPath(subpath));
-            var fileName = strlist[1] + "." + strlist[2];
+            var fileName = viewModel.Student.Name + "." + strlist[2];
             var filepath = HttpContext.Current.Server.MapPath("~/Images/");
             var path = Path.Combine(filepath, fileName);
             image.Save(path, ImageFormat.Png);
@@ -73,11 +73,11 @@ namespace InternWebApi.Controllers
             var subpath = "~/Images/";
             bool exist = System.IO.Directory.Exists(HttpContext.Current.Server.MapPath(subpath));
             if (!exist) Directory.CreateDirectory(HttpContext.Current.Server.MapPath(subpath));
-            var fileName = strlist[1] + "." + strlist[2];
+            var studentInDb = _repo.GetOne(viewModel.Student.Id);
+            var fileName = studentInDb.ImagePath;
             var filepath = HttpContext.Current.Server.MapPath("~/Images/");
             var path = Path.Combine(filepath, fileName);
             image.Save(path, ImageFormat.Png);
-            var studentInDb = _repo.GetOne(viewModel.Student.Id);
             studentInDb.Name = viewModel.Student.Name;
             studentInDb.Email = viewModel.Student.Email;
             studentInDb.Phone = viewModel.Student.Phone;
